@@ -3,169 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmniHub v9.0</title>
+    <title>OmniHub v10.0 - Scientific</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
         :root {
             --primary: #6366f1; --bg: #0a0f1d; --card-bg: #161e31;
             --text: #f1f5f9; --accent: #22d3ee; --active: #4f46e5;
+            --math-btn: #2d3748; --math-op: #4f46e5;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Hiragino Sans', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* ナビゲーションバー（バラバラにするためのスイッチ） */
+        /* ナビゲーション */
         nav { display: flex; overflow-x: auto; background: var(--card-bg); border-bottom: 1px solid #2d3748; padding: 5px; scrollbar-width: none; }
         nav::-webkit-scrollbar { display: none; }
         nav button { padding: 12px 20px; border: none; background: transparent; color: #94a3b8; font-weight: bold; cursor: pointer; white-space: nowrap; border-radius: 8px; transition: 0.3s; }
         nav button.active { background: var(--active); color: white; }
 
-        /* メインコンテンツエリア */
-        main { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-        .tab-content { display: none; animation: fadeIn 0.3s ease; max-width: 800px; margin: 0 auto; }
+        /* メイン */
+        main { flex: 1; overflow-y: auto; padding: 15px; }
+        .tab-content { display: none; max-width: 900px; margin: 0 auto; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 共通パーツ */
-        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #2d3748; margin-bottom: 20px; }
-        h2 { font-size: 1.2rem; color: var(--accent); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        input, select, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 1rem; }
-        button.action-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button.action-btn:active { transform: scale(0.97); }
-
-        /* AIアシスタント（常に画面下にフローティング） */
-        #ai-float { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 100; font-size: 1.5rem; }
+        /* --- 関数電卓 UI (Desmos Style) --- */
+        .calculator { background: var(--card-bg); border-radius: 16px; border: 1px solid #2d3748; overflow: hidden; max-width: 500px; margin: 0 auto; }
+        .calc-display { background: #000; padding: 20px; text-align: right; border-bottom: 1px solid #2d3748; }
+        #calc-expr { font-size: 1.2rem; color: var(--accent); min-height: 1.5rem; word-break: break-all; }
+        #calc-res { font-size: 2rem; font-weight: bold; color: #fff; margin-top: 10px; }
         
-        /* ゲームグリッド */
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
-        .game-item { aspect-ratio: 1; background: #1e293b; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; cursor: pointer; }
+        .calc-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #2d3748; }
+        .calc-grid button { 
+            padding: 15px 5px; border: none; background: var(--card-bg); color: #fff; 
+            font-size: 1rem; cursor: pointer; transition: 0.1s;
+        }
+        .calc-grid button:hover { background: #1e293b; }
+        .calc-grid button:active { background: var(--active); }
+        .btn-op { background: #1e293b !important; color: var(--accent) !important; }
+        .btn-eq { background: var(--active) !important; grid-column: span 2; }
+        .btn-clear { color: #f43f5e !important; }
+
+        /* 他のUI */
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #2d3748; margin-bottom: 15px; }
+        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box; }
+        .action-btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <nav id="tabs">
-        <button onclick="showTab('media')" class="active">🎬 メディア</button>
-        <button onclick="showTab('ai')">🧠 AI翻訳・敬語</button>
+    <nav>
+        <button onclick="showTab('tools')" class="active">📐 関数電卓</button>
+        <button onclick="showTab('media')">🎬 メディア</button>
+        <button onclick="showTab('ai')">🧠 AI翻訳</button>
         <button onclick="showTab('games')">🎮 ゲーム</button>
-        <button onclick="showTab('tools')">🛠️ ツール・数学</button>
         <button onclick="showTab('chat')">💬 チャット</button>
     </nav>
 
     <main>
-        <!-- 1. メディアセクション -->
-        <div id="media" class="tab-content active">
-            <div class="card">
-                <h2>🎬 動画・音楽エンジン</h2>
-                <div id="pv" style="width:100%; height:200px; background:#000; border-radius:12px; margin-bottom:15px; display:flex; align-items:center; justify-content:center; overflow:hidden;"></div>
-                <input type="file" id="m-up" accept="video/*,audio/*" onchange="loadMedia(event)">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <button class="action-btn" onclick="alert('ロゴなし書き出し開始')">高速保存</button>
-                    <button class="action-btn" style="background:#475569;" onclick="alert('全拡張子変換モード')">形式変換</button>
+        <!-- 1. 関数電卓セクション (Desmos風) -->
+        <div id="tools" class="tab-content active">
+            <div class="calculator">
+                <div class="calc-display">
+                    <div id="calc-expr"></div>
+                    <div id="calc-res">0</div>
                 </div>
-                <button class="action-btn" style="margin-top:10px; background:#10b981;" onclick="alert('イコライザー適用')">プロ音響設定</button>
+                <div class="calc-grid">
+                    <!-- 1行目 -->
+                    <button onclick="add('sin(')" class="btn-op">sin</button>
+                    <button onclick="add('cos(')" class="btn-op">cos</button>
+                    <button onclick="add('tan(')" class="btn-op">tan</button>
+                    <button onclick="add('pi')" class="btn-op">π</button>
+                    <button onclick="clearCalc()" class="btn-clear">AC</button>
+                    <!-- 2行目 -->
+                    <button onclick="add('sqrt(')" class="btn-op">√</button>
+                    <button onclick="add('^')" class="btn-op">^</button>
+                    <button onclick="add('log(')" class="btn-op">log</button>
+                    <button onclick="add('(')" class="btn-op">(</button>
+                    <button onclick="add(')')" class="btn-op">)</button>
+                    <!-- 3行目 -->
+                    <button onclick="add('7')">7</button>
+                    <button onclick="add('8')">8</button>
+                    <button onclick="add('9')">9</button>
+                    <button onclick="add('/')" class="btn-op">÷</button>
+                    <button onclick="backspace()">⌫</button>
+                    <!-- 4行目 -->
+                    <button onclick="add('4')">4</button>
+                    <button onclick="add('5')">5</button>
+                    <button onclick="add('6')">6</button>
+                    <button onclick="add('*')" class="btn-op">×</button>
+                    <button onclick="add('exp(')" class="btn-op">e</button>
+                    <!-- 5行目 -->
+                    <button onclick="add('1')">1</button>
+                    <button onclick="add('2')">2</button>
+                    <button onclick="add('3')">3</button>
+                    <button onclick="add('-')" class="btn-op">-</button>
+                    <button onclick="solve()" class="btn-eq">=</button>
+                    <!-- 6行目 -->
+                    <button onclick="add('0')" style="grid-column: span 2;">0</button>
+                    <button onclick="add('.')">.</button>
+                    <button onclick="add('+')" class="btn-op">+</button>
+                </div>
+            </div>
+            <div class="card" style="margin-top:20px;">
+                <p style="font-size:0.8rem; opacity:0.7;">※「10 + sin(pi/2)」のような数式をそのまま入力・計算できます。 math.js エンジン搭載。</p>
+                <button class="action-btn" style="background:#475569;" onclick="alert('PDF/画像編集ツールへ')">その他のツール (PDF/画像)</button>
             </div>
         </div>
 
-        <!-- 2. AIセクション -->
+        <!-- 2. 他のタブ (簡略化して維持) -->
+        <div id="media" class="tab-content">
+            <div class="card">
+                <h2>🎬 メディアエンジン</h2>
+                <input type="file" accept="video/*,audio/*">
+                <button class="action-btn" style="margin-top:10px;">書き出し・変換</button>
+            </div>
+        </div>
+
         <div id="ai" class="tab-content">
             <div class="card">
-                <h2>🧠 AIインテリジェンス</h2>
-                <textarea id="ai-in" placeholder="翻訳、敬語変換、要約したい文章を入力..." style="height:150px;"></textarea>
-                <select id="ai-mode">
-                    <option value="trans">DeepL超え翻訳 (日英中)</option>
-                    <option value="honor">最強敬語変換</option>
-                    <option value="study">勉強AI (要約・解説)</option>
-                </select>
-                <button class="action-btn" onclick="runAI()">AI実行</button>
+                <h2>🧠 AI翻訳・敬語</h2>
+                <textarea placeholder="文章を入力..." style="height:100px;"></textarea>
+                <button class="action-btn" style="margin-top:10px;">AI変換実行</button>
             </div>
         </div>
 
-        <!-- 3. ゲームセクション -->
         <div id="games" class="tab-content">
             <div class="card">
-                <h2>🎮 ゲーム・自作投稿</h2>
-                <div class="game-grid" id="g-list"></div>
-                <hr style="border:0; border-top:1px solid #2d3748; margin:20px 0;">
-                <p>自作ゲームをAI審査して公開 (ZIP/HTML):</p>
-                <input type="file">
-                <button class="action-btn" style="background:#10b981;" onclick="alert('AI審査中... 安全を確認しました。VC連携コードを付与して公開！')">AI審査・公開</button>
-            </div>
-        </div>
-
-        <!-- 4. ツールセクション -->
-        <div id="tools" class="tab-content">
-            <div class="card">
-                <h2>📐 数学・単位・PDF</h2>
-                <input type="text" id="m-in" placeholder="方程式, 行列, sin/cos...">
-                <button class="action-btn" onclick="solveM()">計算・解析</button>
-                <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <button class="action-btn" style="background:#475569;" onclick="alert('PDF結合・分割モード')">PDF編集</button>
-                    <button class="action-btn" style="background:#475569;" onclick="alert('背景透過・トリミング')">画像加工</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. チャットセクション -->
-        <div id="chat" class="tab-content">
-            <div class="card">
-                <h2>💬 低速WiFi対応チャット</h2>
-                <div id="c-box" style="height:300px; background:#0f172a; border-radius:12px; padding:15px; overflow-y:auto; margin-bottom:15px; border:1px solid #334155;"></div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="c-in" placeholder="メッセージ..." style="margin:0;">
-                    <button class="action-btn" style="width:80px;" onclick="sendC()">送信</button>
+                <h2>🎮 100種ゲーム</h2>
+                <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:5px;">
+                    <div style="aspect-ratio:1; background:#334155; border-radius:8px;"></div>
+                    <div style="aspect-ratio:1; background:#334155; border-radius:8px;"></div>
+                    <div style="aspect-ratio:1; background:#334155; border-radius:8px;"></div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="ai-float" onclick="alert('AIアシスタント：何をお手伝いしましょうか？')">🪄</div>
-
     <script>
-        // タブ切り替えロジック
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        // タブ制御
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
         }
 
-        // メディア読み込み
-        function loadMedia(e) {
-            const f = e.target.files[0];
-            const v = document.getElementById('pv');
-            const url = URL.createObjectURL(f);
-            v.innerHTML = f.type.startsWith('video') ? `<video src="${url}" controls style="width:100%"></video>` : `<audio src="${url}" controls></audio>`;
+        // --- 電卓ロジック ---
+        let expr = "";
+        const exprDiv = document.getElementById('calc-expr');
+        const resDiv = document.getElementById('calc-res');
+
+        function add(val) {
+            expr += val;
+            exprDiv.innerText = expr;
         }
 
-        // AI実行
-        function runAI() {
-            const m = document.getElementById('ai-mode').value;
-            const t = document.getElementById('ai-in').value;
-            if(!t) return alert("文章を入力してください");
-            alert(`AI処理完了 (${m}): \n(ここに高度な変換結果が表示されます)`);
+        function clearCalc() {
+            expr = "";
+            exprDiv.innerText = "";
+            resDiv.innerText = "0";
         }
 
-        // 数学
-        function solveM() {
-            const q = document.getElementById('m-in').value;
-            try { alert("結果: " + math.evaluate(q)); } catch { alert("AIが方程式の解を計算中..."); }
+        function backspace() {
+            expr = expr.slice(0, -1);
+            exprDiv.innerText = expr;
         }
 
-        // ゲームリスト生成
-        const gl = document.getElementById('g-list');
-        for(let i=1; i<=100; i++) {
-            const d = document.createElement('div');
-            d.className = 'game-item'; d.innerText = 'G' + i;
-            d.onclick = () => alert('ゲーム ' + i + ' 起動 (VC連携済み)');
-            gl.appendChild(d);
-        }
-
-        // チャット
-        function sendC() {
-            const i = document.getElementById('c-in');
-            const b = document.getElementById('c-box');
-            if(i.value) {
-                b.innerHTML += `<div style="margin-bottom:10px;"><b>YOU:</b> ${i.value}</div>`;
-                i.value = ""; b.scrollTop = b.scrollHeight;
+        function solve() {
+            try {
+                // math.js で計算
+                let result = math.evaluate(expr);
+                // 小数点以下が長い場合は丸める
+                if (typeof result === 'number') {
+                    result = Math.round(result * 100000000) / 100000000;
+                }
+                resDiv.innerText = result;
+            } catch (e) {
+                resDiv.innerText = "Error";
             }
         }
     </script>
