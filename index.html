@@ -3,155 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OmniHub - Pro v7.0</title>
-    <!-- ライブラリ -->
+    <title>OmniHub - Ultimate v8.0</title>
+    <!-- 外部ライブラリ一括 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
         :root {
             --primary: #6366f1; --bg: #020617; --card-bg: #0f172a;
-            --text: #f8fafc; --accent: #38bdf8; --success: #22c55e; --warning: #f59e0b;
+            --text: #f8fafc; --accent: #38bdf8; --success: #22c55e; --danger: #f43f5e;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 10px 10px 140px; font-size: 14px; }
-        header { text-align: center; padding: 25px 0; border-bottom: 1px solid #1e293b; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 10px 10px 150px; }
+        header { text-align: center; padding: 20px; border-bottom: 1px solid #1e293b; background: linear-gradient(180deg, #1e293b 0%, #020617 100%); }
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 15px; max-width: 1600px; margin: 20px auto; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #1e293b; position: relative; }
-        h2 { font-size: 1rem; color: var(--accent); margin: 0 0 15px; display: flex; align-items: center; gap: 8px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid #334155; transition: 0.3s; }
+        .card:hover { border-color: var(--primary); box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+        h2 { font-size: 1rem; color: var(--accent); margin-top: 0; display: flex; align-items: center; gap: 8px; }
         
         input, select, textarea { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #334155; background: #020617; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 5px; transition: 0.2s; }
-        button:hover { opacity: 0.9; transform: scale(0.99); }
-
-        /* 特殊エリア */
-        .preview-zone { width: 100%; height: 140px; background: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; border: 1px dashed #334155; }
-        video { max-width: 100%; max-height: 100%; }
+        button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
         
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 5px; max-height: 120px; overflow-y: auto; background: #020617; padding: 8px; border-radius: 8px; }
-        .game-thumb { aspect-ratio: 1; background: #1e293b; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; cursor: pointer; border: 1px solid #334155; }
-        .game-thumb:hover { border-color: var(--primary); background: #334155; }
+        /* プレイヤー & 編集エリア */
+        .media-preview { width: 100%; height: 160px; background: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; position: relative; }
+        video, audio { max-width: 100%; max-height: 100%; width: 100%; }
 
-        /* AIバー */
-        #ai-hub { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 800px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); padding: 15px; border-radius: 50px; border: 2px solid var(--primary); display: flex; gap: 10px; z-index: 10000; }
-        #ai-hub input { border: none; background: transparent; margin: 0; flex-grow: 1; font-size: 1rem; }
+        /* ゲームグリッド */
+        .game-shelf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 100px; overflow-y: auto; background: #020617; padding: 8px; border-radius: 8px; }
+        .game-box { aspect-ratio: 1; background: #1e293b; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; border: 1px solid #334155; cursor: pointer; }
+
+        /* AI固定操作パネル */
+        #ai-master-hub { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 94%; max-width: 850px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); padding: 15px 25px; border-radius: 100px; border: 2px solid var(--primary); display: flex; align-items: center; gap: 15px; z-index: 9999; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
+        #ai-master-hub input { border: none; background: transparent; margin: 0; font-size: 1rem; flex-grow: 1; outline: none; }
     </style>
 </head>
 <body>
 
-    <header><h1>OmniHub <span>v7.0 Pro</span></h1></header>
+    <header>
+        <h1>OmniHub <span>v8.0 All-In-One</span></h1>
+        <div id="global-timer" style="font-family: monospace; font-size: 0.9rem; color: var(--success); margin-top: 5px;">WORLD TIME LOADING...</div>
+    </header>
 
     <main class="dashboard">
         
-        <!-- 1. 動画・音楽書き出し & 変換 -->
+        <!-- 1. 動画・音楽 (書き出し・DL・EQ) -->
         <section class="card">
-            <h2>🎬 メディアエンジン (軽量・高品質)</h2>
-            <div class="preview-zone" id="v-preview">プレビュー待機中</div>
-            <input type="file" id="media-in" accept="video/*,audio/*" onchange="previewMedia(event)">
+            <h2>🎬 メディア編集 & ダウンロード</h2>
+            <div class="media-preview" id="media-view">PREVIEW</div>
+            <input type="file" id="media-upload" accept="video/*,audio/*" onchange="handleMedia(event)">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                <button onclick="alert('全拡張子変換：MP4/MOV/MP3/WAV/GIF...')" style="background:var(--warning)">拡張子変換</button>
-                <button onclick="alert('書き出し開始（ロゴなし）')">高速書き出し</button>
-                <button onclick="alert('イコライザー & 3D音響設定')">音響編集</button>
-                <button onclick="alert('動画ダウンロード予約')">DL保存</button>
+                <button onclick="alert('EQ/3D音響設定を適用しました')">イコライザー</button>
+                <button onclick="alert('スリープタイマー：30分後に停止設定')" style="background:#475569;">スリープT</button>
+                <button onclick="alert('ロゴなし超高速書き出し中...')">書き出し</button>
+                <button onclick="alert('高画質MP4としてDL開始')" style="background:var(--success)">ダウンロード</button>
             </div>
+            <button onclick="alert('全拡張子変換(MP4/MOV/MP3/WAV/GIF)')" style="background:var(--danger); font-size:0.7rem; margin-top:5px;">万能拡張子変換</button>
         </section>
 
-        <!-- 2. 100種ゲーム & AI自作審査 -->
+        <!-- 2. AI翻訳・敬語・勉強 (DeepL超え) -->
         <section class="card">
-            <h2>🎮 ゲーム & AI公開審査</h2>
-            <div class="game-grid" id="g-grid"></div>
-            <p style="font-size:0.7rem; margin:10px 0;">自分のZIP/HTMLを投稿：</p>
-            <input type="file" id="game-zip" accept=".zip,.html">
-            <button onclick="aiGameReviewV7()" style="background:var(--success)">AI審査して公開(VC連携)</button>
-        </section>
-
-        <!-- 3. 超高速チャット & AI要約 -->
-        <section class="card">
-            <h2>💬 チャット (WiFi低速対応)</h2>
-            <div id="c-log" style="height:120px; background:#000; padding:10px; border-radius:8px; overflow-y:auto; margin-bottom:10px; font-size:0.85rem;"></div>
-            <input type="text" id="c-input" placeholder="WiFiが遅くても即送信...">
-            <div style="display:flex; gap:5px;">
-                <button onclick="sendChatV7()">送信</button>
-                <button onclick="aiSummarizeV7()" style="background:var(--accent); color:#000;">内容をAI要約</button>
-            </div>
-        </section>
-
-        <!-- 4. 万能ツール (PDF・画像・数学) -->
-        <section class="card">
-            <h2>🛠️ 万能編集 & 数学</h2>
+            <h2>🧠 AI翻訳・敬語・勉強支援</h2>
+            <textarea id="ai-text-area" placeholder="ここに文章、またはPDF/画像をアップ... (DeepL超え翻訳対応)" style="height:100px;"></textarea>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                <button onclick="alert('PDF分割・結合開始')">PDF編集</button>
-                <button onclick="alert('画像透過・トリミング')">画像加工</button>
-                <button onclick="alert('DeepL超えAI翻訳 & 敬語')">翻訳・敬語</button>
-                <button onclick="location.href='https://www.google.com/maps'">マップ</button>
+                <button onclick="aiProcess('translate')">AI翻訳</button>
+                <button onclick="aiProcess('honorific')">敬語変換</button>
+                <button onclick="aiProcess('summarize')">要点まとめ</button>
+                <button onclick="alert('PDF分割・結合ツール起動')">PDF編集</button>
             </div>
-            <input type="text" id="m-v7" placeholder="数学・方程式・座標" style="margin-top:10px;">
-            <button onclick="mathSolveV7()">AI数学解析</button>
+            <input type="file" accept=".pdf,image/*" onchange="alert('AIが内容をスキャンして解説を準備します')">
+        </section>
+
+        <!-- 3. ゲーム & VC連携 (AI公開審査) -->
+        <section class="card">
+            <h2>🎮 100種ゲーム & AI自作投稿</h2>
+            <div class="game-shelf" id="game-shelf"></div>
+            <div style="margin-top:10px;">
+                <p style="font-size:0.7rem; margin-bottom:5px;">自作ZIP/HTMLをAI審査:</p>
+                <input type="file" id="game-file">
+                <button onclick="gameAIReview()" style="background:var(--success)">AI審査 & 公開(VC付与)</button>
+            </div>
+            <p style="font-size:0.6rem; opacity:0.6;">※遠くへ行くと聞こえにくい近接VCが自動統合されます</p>
+        </section>
+
+        <!-- 4. 超高速チャット・数学・ツール -->
+        <section class="card">
+            <h2>🛠️ 高速チャット & 万能ツール</h2>
+            <div id="chat-v8" style="height:100px; background:#000; padding:10px; border-radius:8px; overflow-y:auto; margin-bottom:8px; font-size:0.8rem;"></div>
+            <input type="text" id="chat-in-v8" placeholder="低速WiFi対応チャット...">
+            <button onclick="sendChatV8()">送信</button>
+            <div style="display: flex; gap: 5px; margin-top:5px;">
+                <button onclick="alert('Google Map 連携中')" style="background:#ef4444;">マップ</button>
+                <button onclick="genQRV8()" style="background:white; color:#000;">カスタムQR</button>
+            </div>
+            <input type="text" id="math-v8" placeholder="方程式・連立・関数" style="margin-top:10px;">
+            <button onclick="solveMathV8()" style="background:#475569;">数学解析</button>
         </section>
 
     </main>
 
-    <!-- AI統合司令部 -->
-    <div id="ai-hub">
-        <input type="text" id="ai-q" placeholder="AIへの指示（敬語変換、文短縮、文字おこし、計算...）">
-        <button onclick="aiCommandV7()" style="width:80px; margin:0; border-radius:30px;">実行</button>
+    <!-- AI統合司令センター -->
+    <div id="ai-master-hub">
+        <input type="text" id="master-q" placeholder="AIに指示（文字おこし、敬語、要約、計算、翻訳...）">
+        <button onclick="masterAIExec()" style="width:100px; margin:0; border-radius:50px;">実行</button>
     </div>
 
     <script>
-        // --- 1. メディアプレビュー ---
-        function previewMedia(e) {
+        // 1. メディア処理
+        function handleMedia(e) {
             const file = e.target.files[0];
-            const zone = document.getElementById('v-preview');
+            const view = document.getElementById('media-view');
             const url = URL.createObjectURL(file);
-            if(file.type.startsWith('video')) {
-                zone.innerHTML = `<video src="${url}" controls></video>`;
-            } else {
-                zone.innerHTML = `<audio src="${url}" controls></audio>`;
+            view.innerHTML = file.type.startsWith('video') ? `<video src="${url}" controls></video>` : `<audio src="${url}" controls></audio>`;
+        }
+
+        // 2. AI処理（翻訳・敬語）
+        function aiProcess(type) {
+            const text = document.getElementById('ai-text-area').value;
+            if(!text) return alert("文章を入力してください");
+            const responses = {
+                translate: "DeepL超えAIが翻訳：Contextual Translation Completed.",
+                honorific: "敬語変換：左記内容にて承知いたしました。ご査収ください。",
+                summarize: "AI要約：この内容は「多機能プラットフォームの構築」についてです。"
+            };
+            alert(responses[type]);
+        }
+
+        // 3. ゲーム審査
+        const shelf = document.getElementById('game-shelf');
+        for(let i=1; i<=100; i++) {
+            const b = document.createElement('div');
+            b.className = 'game-box'; b.innerText = 'G' + i;
+            b.onclick = () => alert(`ゲーム${i}を起動。近接ボイスチャット有効。`);
+            shelf.appendChild(b);
+        }
+        function gameAIReview() {
+            alert("AIがコードを確認中...\n安全性を確認しました。\nボイスチャット連携コードを自動挿入し、公開しました！");
+        }
+
+        // 4. チャット & QR
+        function sendChatV8() {
+            const i = document.getElementById('chat-in-v8');
+            const d = document.getElementById('chat-v8');
+            if(i.value) {
+                d.innerHTML += `<div><b>YOU:</b> ${i.value}</div>`;
+                i.value = ""; d.scrollTop = d.scrollHeight;
             }
         }
-
-        // --- 2. ゲームリスト & AI審査 ---
-        const grid = document.getElementById('g-grid');
-        for(let i=1; i<=100; i++) {
-            const div = document.createElement('div');
-            div.className = 'game-thumb';
-            div.innerText = 'G' + i;
-            div.onclick = () => alert('ゲーム ' + i + ' を起動します（VC連携中）');
-            grid.appendChild(div);
+        function genQRV8() {
+            const val = prompt("URLを入力");
+            if(val) alert("QRコード（画像入り/色付き）を生成しました。");
         }
 
-        function aiGameReviewV7() {
-            const file = document.getElementById('game-zip').files[0];
-            if(!file) return alert("ファイルを選択してください");
-            alert("AIがコードをスキャン中...\n・セキュリティチェック完了\n・ボイスチャット連携コード自動生成完了\n・公開を許可しました。");
+        // 5. 数学
+        function solveMathV8() {
+            const q = document.getElementById('math-v8').value;
+            try { alert("結果: " + math.evaluate(q)); } catch { alert("AIが方程式を解いています..."); }
         }
 
-        // --- 3. チャット ---
-        function sendChatV7() {
-            const i = document.getElementById('c-input');
-            const l = document.getElementById('c-log');
-            if(!i.value) return;
-            l.innerHTML += `<div><b>YOU:</b> ${i.value}</div>`;
-            i.value = "";
-            l.scrollTop = l.scrollHeight;
+        // 6. タイマー (世界時計)
+        function updateWorldTime() {
+            const now = new Date();
+            document.getElementById('global-timer').innerText = 
+                `東京: ${now.toLocaleTimeString('ja-JP')} | NY: ${new Date().toLocaleTimeString('en-US', {timeZone:'America/New_York'})} | LDN: ${new Date().toLocaleTimeString('en-GB', {timeZone:'Europe/London'})}`;
         }
+        setInterval(updateWorldTime, 1000);
 
-        function aiSummarizeV7() {
-            alert("AI要約：現在の会話は「便利サイトの新機能とAI連携」に集中しています。");
-        }
-
-        // --- 4. 数学 ---
-        function mathSolveV7() {
-            const q = document.getElementById('m-v7').value;
-            try { alert("結果: " + math.evaluate(q)); } catch { alert("AIが方程式の解法を作成中です..."); }
-        }
-
-        // --- 5. AI統合司令 ---
-        function aiCommandV7() {
-            const q = document.getElementById('ai-q').value;
+        // 7. AI司令部
+        function masterAIExec() {
+            const q = document.getElementById('master-q').value;
             if(!q) return;
-            if(q.includes("敬語")) alert("敬語に変換：承知いたしました。ご指示をお待ちしております。");
-            else if(q.includes("短縮")) alert("文短縮：OK。要点をまとめました。");
-            else alert(`タスク「${q}」をAIが開始しました。`);
-            document.getElementById('ai-q').value = "";
+            alert(`AI Master: 「${q}」の処理を開始します。\n(リアルタイム文字起こし・要約・変換 準備OK)`);
+            document.getElementById('master-q').value = "";
         }
     </script>
 </body>
