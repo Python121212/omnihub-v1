@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniHub - 万能便利サイト</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script> <!-- アイコン用 -->
+</head>
+<body>
+    <header>
+        <h1>OmniHub <span>AI Powered</span></h1>
+        <p>ボイス・チャット・ゲーム・編集、すべてを1つに。</p>
+    </header>
+
+    <main class="dashboard">
+        <!-- 通信系 -->
+        <section class="card communication">
+            <h2>💬 通信・会話</h2>
+            <button onclick="alert('ボイスチャット起動中...')">高音質VC開始</button>
+            <button onclick="alert('AI要約チャット起動')">AI要約チャット</button>
+        </section>
+
+        <!-- ツール系 -->
+        <section class="card tools">
+            <h2>🧮 ツール・編集</h2>
+            <div class="tool-grid">
+                <span>電卓</span>
+                <span>単位変換</span>
+                <span>画像編集</span>
+                <span>PDF結合</span>
+            </div>
+        </section>
+
+        <!-- 勉強・AI -->
+        <section class="card study">
+            <h2>📚 勉強・AI支援</h2>
+            <input type="file" id="study-file" style="display:none">
+            <button onclick="document.getElementById('study-file').click()">PDF/画像をAIに教わる</button>
+        </section>
+
+        <!-- ゲーム -->
+        <section class="card games">
+            <h2>🎮 ゲームポータル</h2>
+            <p>100+のゲーム（VC連携）</p>
+            <button>ゲーム一覧を開く</button>
+        </section>
+    </main>
+
+    <div id="ai-assistant">
+        <input type="text" placeholder="AIに命令（敬語変換・要約など）...">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
