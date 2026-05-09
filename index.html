@@ -4,53 +4,213 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OmniHub - 万能便利サイト</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script> <!-- アイコン用 -->
+    <!-- QRコード生成ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --accent: #22d3ee;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { font-size: 2.5rem; margin-bottom: 5px; }
+        header span { font-size: 0.4em; color: var(--accent); border: 1px solid var(--accent); padding: 2px 8px; border-radius: 20px; vertical-align: middle; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 { font-size: 1.2rem; border-left: 4px solid var(--primary); padding-left: 10px; margin-top: 0; }
+
+        .tool-item { margin-bottom: 20px; }
+        hr { border: 0; border-top: 1px solid #334155; margin: 15px 0; }
+
+        input, select {
+            width: calc(100% - 24px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.8; }
+
+        #qr-output {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            display: none; /* 生成時のみ表示 */
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        /* AIアシスタント固定バー */
+        #ai-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 50px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+        }
+
+        #ai-bar input {
+            border: none;
+            background: transparent;
+            margin-bottom: 0;
+            flex-grow: 1;
+            font-size: 1rem;
+        }
+
+        #ai-bar input:focus { outline: none; }
+    </style>
 </head>
 <body>
+
     <header>
-        <h1>OmniHub <span>AI Powered</span></h1>
-        <p>ボイス・チャット・ゲーム・編集、すべてを1つに。</p>
+        <h1>OmniHub <span>BETA</span></h1>
+        <p>多機能AIポータル</p>
     </header>
 
     <main class="dashboard">
-        <!-- 通信系 -->
-        <section class="card communication">
-            <h2>💬 通信・会話</h2>
-            <button onclick="alert('ボイスチャット起動中...')">高音質VC開始</button>
-            <button onclick="alert('AI要約チャット起動')">AI要約チャット</button>
-        </section>
-
-        <!-- ツール系 -->
-        <section class="card tools">
-            <h2>🧮 ツール・編集</h2>
-            <div class="tool-grid">
-                <span>電卓</span>
-                <span>単位変換</span>
-                <span>画像編集</span>
-                <span>PDF結合</span>
+        <!-- QRコード作成 -->
+        <section class="card">
+            <h2>🔗 QRコード作成</h2>
+            <div class="tool-item">
+                <input type="text" id="qr-text" placeholder="URLや文字を入力">
+                <button onclick="generateQR()">QRコードを生成</button>
+                <div id="qr-output"></div>
             </div>
         </section>
 
-        <!-- 勉強・AI -->
-        <section class="card study">
-            <h2>📚 勉強・AI支援</h2>
-            <input type="file" id="study-file" style="display:none">
-            <button onclick="document.getElementById('study-file').click()">PDF/画像をAIに教わる</button>
+        <!-- 世界時計 -->
+        <section class="card">
+            <h2>🌍 世界時計</h2>
+            <div class="tool-item">
+                <select id="timezone-select" onchange="updateClock()">
+                    <option value="Asia/Tokyo">日本 (東京)</option>
+                    <option value="America/New_York">アメリカ (ニューヨーク)</option>
+                    <option value="Europe/London">イギリス (ロンドン)</option>
+                    <option value="Asia/Shanghai">中国 (上海)</option>
+                </select>
+                <p id="clock-display" style="font-size: 1.5rem; font-weight: bold; text-align: center;">--:--:--</p>
+            </div>
         </section>
 
-        <!-- ゲーム -->
-        <section class="card games">
-            <h2>🎮 ゲームポータル</h2>
-            <p>100+のゲーム（VC連携）</p>
-            <button>ゲーム一覧を開く</button>
+        <!-- 単位変換 -->
+        <section class="card">
+            <h2>📏 単位変換 (m ➡︎ km)</h2>
+            <div class="tool-item">
+                <input type="number" id="unit-input" placeholder="数値を入力" oninput="convertUnit()">
+                <p style="text-align: center; font-size: 1.2rem;">結果: <span id="unit-result" style="color: var(--accent);">0</span> km</p>
+            </div>
+        </section>
+
+        <!-- その他（今後の拡張用） -->
+        <section class="card">
+            <h2>🛠️ その他機能</h2>
+            <button onclick="alert('PDF編集機能は現在開発中です')">PDF結合・分割</button>
+            <button onclick="alert('画像編集機能は現在開発中です')" style="margin-top:10px; background:#475569;">画像透過・トリミング</button>
         </section>
     </main>
 
-    <div id="ai-assistant">
-        <input type="text" placeholder="AIに命令（敬語変換・要約など）...">
+    <!-- AI入力バー -->
+    <div id="ai-bar">
+        <input type="text" id="ai-input" placeholder="AIに命令 (例: '敬語で 腹減った', '計算 125*8')">
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // 1. QRコード生成
+        function generateQR() {
+            const text = document.getElementById('qr-text').value;
+            const output = document.getElementById('qr-output');
+            output.innerHTML = "";
+            if(text) {
+                output.style.display = "flex";
+                new QRCode(output, {
+                    text: text,
+                    width: 150,
+                    height: 150
+                });
+            }
+        }
+
+        // 2. 世界時計
+        function updateClock() {
+            const tz = document.getElementById('timezone-select').value;
+            const options = { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            const timeString = new Intl.DateTimeFormat('ja-JP', options).format(new Date());
+            document.getElementById('clock-display').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 3. 単位変換
+        function convertUnit() {
+            const val = document.getElementById('unit-input').value;
+            document.getElementById('unit-result').innerText = val / 1000;
+        }
+
+        // 4. AIアシスタント（簡易版ロジック）
+        document.getElementById('ai-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value;
+                if (cmd.includes("敬語")) {
+                    alert("【AI敬語】 " + cmd.replace("敬語", "") + " → 承知いたしました。");
+                } else if (cmd.includes("計算")) {
+                    const formula = cmd.replace("計算", "").trim();
+                    try { alert("【AI計算】 結果: " + eval(formula)); } catch { alert("エラー: 正しい数式を入力してください"); }
+                } else {
+                    alert("【AI回答】 「" + cmd + "」ですね。機能を順次追加中です！");
+                }
+                this.value = '';
+            }
+        });
+    </script>
 </body>
 </html>
